@@ -34,8 +34,23 @@ class VerificationEngine:
             extracted_value = extracted_fields.get(field_name)
             submitted_value = form_data.get(field_name)
             
+            # Extract value and confidence from various formats
+            # After .dict() serialization, fields come as plain dicts
+            if extracted_value is None:
+                ext_val = None
+                ext_conf = 0.0
+            elif isinstance(extracted_value, dict):
+                ext_val = extracted_value.get("value")
+                ext_conf = extracted_value.get("confidence", 0.5)
+            elif hasattr(extracted_value, 'value'):
+                ext_val = extracted_value.value
+                ext_conf = extracted_value.confidence if hasattr(extracted_value, 'confidence') else 0.5
+            else:
+                ext_val = str(extracted_value)
+                ext_conf = 0.5
+            
             # Handle extraction not found
-            if extracted_value is None or (hasattr(extracted_value, 'value') and extracted_value.value == "NOT_FOUND"):
+            if ext_val is None or ext_val == "NOT_FOUND":
                 result = FieldVerificationResult(
                     field_name=field_name,
                     expected_value="NOT_EXTRACTED",
@@ -48,9 +63,9 @@ class VerificationEngine:
                 results.append(result)
                 continue
             
-            # Get values
-            extracted_val = extracted_value.value if hasattr(extracted_value, 'value') else str(extracted_value)
-            extracted_conf = extracted_value.confidence if hasattr(extracted_value, 'confidence') else 0.5
+            # Get submitted value
+            extracted_val = ext_val
+            extracted_conf = ext_conf
             submitted_val = str(submitted_value) if submitted_value else ""
             
             if not submitted_val:

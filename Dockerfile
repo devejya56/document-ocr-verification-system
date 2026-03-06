@@ -19,10 +19,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application code
 COPY backend/ ./backend/
 
-WORKDIR /app/backend
-
 # Expose port
 EXPOSE 8000
 
-# Run application
-CMD ["python", "main.py"]
+# Run application from project root so relative imports work
+CMD ["uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8000"]
