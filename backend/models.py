@@ -11,9 +11,13 @@ class DocumentType(str, Enum):
     ID_CARD = "id_card"
     PASSPORT = "passport"
     DRIVING_LICENSE = "driving_license"
+    AADHAAR = "aadhaar"
+    PAN_CARD = "pan_card"
+    VOTER_ID = "voter_id"
     FORM = "form"
     CERTIFICATE = "certificate"
     BANK_STATEMENT = "bank_statement"
+    AUTO = "auto"
 
 
 class FieldValueSchema(BaseModel):

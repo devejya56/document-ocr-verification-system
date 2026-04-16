@@ -57,12 +57,20 @@ class OCREngine:
             # Preprocess image for better OCR
             image_cv = self._preprocess_image(image_cv)
             
-            results = self.reader.readtext(image_cv)
+            # Encode preprocessed image to bytes to bypass numpy/torch identity conflict
+            # and avoid rejection of PIL images by certain EasyOCR versions.
+            success, buffer = cv2.imencode('.png', image_cv)
+            if not success:
+                raise ValueError("Could not encode preprocessed image for OCR")
+            
+            results = self.reader.readtext(buffer.tobytes())
             extracted_data = self._process_ocr_results(results, image_cv)
             
             return extracted_data
         except Exception as e:
+            import traceback
             logger.error(f"Error in OCR extraction: {str(e)}")
+            logger.error(traceback.format_exc())
             raise
     
     def _preprocess_image(self, image) -> np.ndarray:
@@ -97,8 +105,11 @@ class OCREngine:
             all_quality_metrics = []
             
             for page_idx, pil_image in enumerate(images):
-                image_cv = cv2.cvtColor(np.array(pil_image), cv2.COLOR_RGB2BGR)
-                results = self.reader.readtext(image_cv)
+                # Use encoded bytes to avoid context-clash errors between libraries
+                success, buffer = cv2.imencode('.png', image_cv)
+                if not success:
+                    continue # Skip failed page
+                results = self.reader.readtext(buffer.tobytes())
                 
                 for result in results:
                     bbox, text, confidence = result[0], result[1], result[2]
@@ -194,7 +205,7 @@ class OCREngine:
         """Parse document-specific fields from extracted text."""
         fields = {}
         
-        if doc_type == "id_card":
+        if doc_type == "id_card" or doc_type == "aadhaar" or doc_type == "pan_card" or doc_type == "voter_id":
             fields = self._extract_id_card_fields(text, text_blocks)
         elif doc_type == "passport":
             fields = self._extract_passport_fields(text, text_blocks)

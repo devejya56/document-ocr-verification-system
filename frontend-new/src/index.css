@@ -1,0 +1,75 @@
+@import "tailwindcss";
+
+@theme {
+  --color-app-bg: #f8fafc;
+  --color-app-surface: #ffffff;
+  --color-app-border: #e2e8f0;
+  --color-app-primary: #1e3a8a; /* Official Navy Blue */
+  --color-app-secondary: #dc2626; /* Official Red */
+  --color-app-accent: #b45309; /* Deep Gold/Saffron */
+  --color-app-text: #0f172a;
+  --color-app-text-muted: #64748b;
+  
+  --font-mono: "JetBrains Mono", monospace;
+  --font-sans: "Inter", "Roboto", system-ui, sans-serif;
+  --font-serif: "Lora", "Georgia", serif;
+}
+
+@layer base {
+  body {
+    @apply font-sans bg-app-bg text-app-text m-0 min-h-screen selection:bg-app-primary selection:text-white;
+    -webkit-font-smoothing: antialiased;
+  }
+  
+  h1, h2, h3, h4 {
+    @apply font-serif;
+  }
+}
+
+@layer components {
+  .card {
+    @apply bg-app-surface border border-app-border rounded-lg p-6 shadow-sm transition-all duration-200;
+  }
+
+  .btn {
+    @apply px-6 py-2 rounded border border-app-border bg-app-surface text-app-text font-medium text-sm transition-all duration-200 cursor-pointer active:scale-[0.98] disabled:opacity-50 inline-flex items-center justify-center gap-2;
+  }
+
+  .btn:hover:not(:disabled) {
+    @apply border-app-text-muted bg-slate-50;
+  }
+
+  .btn-primary {
+    @apply bg-app-primary text-white border-app-primary font-semibold hover:bg-blue-900 hover:border-blue-900;
+  }
+
+  .input {
+    @apply w-full bg-white border border-app-border px-4 py-2 rounded text-sm outline-none font-sans focus:border-app-primary transition-all text-app-text placeholder:text-app-text-muted;
+  }
+
+  .label {
+    @apply text-xs font-bold text-app-primary uppercase tracking-wider mb-2 block;
+  }
+
+  .official-badge {
+    @apply px-2.5 py-1 rounded bg-slate-100 border border-slate-200 text-[10px] font-bold text-slate-600 uppercase tracking-widest;
+  }
+
+  .tricolour-bar {
+    @apply h-1 w-full flex;
+  }
+  .tricolour-saffron { @apply h-full w-1/3 bg-[#FF9933]; }
+  .tricolour-white { @apply h-full w-1/3 bg-[#FFFFFF]; }
+  .tricolour-green { @apply h-full w-1/3 bg-[#138808]; }
+
+  /* Custom scrollbar */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 8px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    @apply bg-slate-100;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-slate-300 rounded-full hover:bg-slate-400 transition-colors;
+  }
+}

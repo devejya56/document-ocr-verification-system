@@ -12,18 +12,39 @@ from loguru import logger
 
 # Document type keywords with weights
 DOCUMENT_SIGNATURES = {
-    "id_card": {
+    "aadhaar": {
         "keywords": [
-            ("aadhaar", 10), ("आधार", 10), ("unique identification", 8),
-            ("uidai", 9), ("vid", 3), ("enrollment", 4),
-            ("pan", 7), ("permanent account number", 9), ("income tax", 8),
-            ("voter", 7), ("election commission", 8), ("electors", 7),
-            ("identity card", 5), ("photo id", 4),
+            ("aadhaar", 12), ("आधार", 12), ("unique identification", 10),
+            ("uidai", 10), ("vid", 5), ("enrollment", 6),
+            ("government of india", 5), ("भारत सरकार", 10),
         ],
         "patterns": [
-            (r'\d{4}\s+\d{4}\s+\d{4}', 8),   # Aadhaar format
-            (r'[A-Z]{5}\d{4}[A-Z]', 9),        # PAN format
+            (r'\d{4}\s+\d{4}\s+\d{4}', 12),   # Aadhaar format
         ],
+    },
+    "pan_card": {
+        "keywords": [
+            ("pan", 10), ("permanent account number", 12), ("income tax", 10),
+            ("department", 5), ("govt. of india", 5), ("income-tax", 10),
+        ],
+        "patterns": [
+            (r'[A-Z]{5}\d{4}[A-Z]', 12),        # PAN format
+        ],
+    },
+    "voter_id": {
+        "keywords": [
+            ("voter", 12), ("election commission", 10), ("electors", 10),
+            ("identity card", 8), ("epic", 8), ("electoral", 10),
+        ],
+        "patterns": [
+            (r'[A-Z]{3}\d{7}', 10),            # EPIC number format
+        ],
+    },
+    "id_card": {
+        "keywords": [
+            ("identity card", 5), ("photo id", 4), ("national id", 5),
+        ],
+        "patterns": [],
     },
     "passport": {
         "keywords": [
@@ -33,7 +54,7 @@ DOCUMENT_SIGNATURES = {
             ("machine readable", 5), ("mrz", 6),
         ],
         "patterns": [
-            (r'[A-Z]\d{7,8}', 6),              # Passport number
+            (r'[A-Z]\d{7,8}', 8),              # Passport number
         ],
     },
     "driving_license": {
@@ -44,18 +65,18 @@ DOCUMENT_SIGNATURES = {
             ("lmv", 5), ("validity", 4),
         ],
         "patterns": [
-            (r'[A-Z]{2}\d{2}\s?\d{4,11}', 7),  # License number
+            (r'[A-Z]{2}\d{2}\s?\d{4,11}', 10),  # License number
         ],
     },
     "bank_statement": {
         "keywords": [
-            ("bank", 7), ("statement", 6), ("account", 5),
-            ("balance", 6), ("transaction", 6), ("debit", 5), ("credit", 5),
-            ("ifsc", 8), ("branch", 4), ("savings", 5), ("current account", 6),
-            ("opening balance", 7), ("closing balance", 7), ("neft", 5), ("upi", 4),
+            ("bank", 10), ("statement", 8), ("account", 6),
+            ("balance", 8), ("transaction", 8), ("debit", 6), ("credit", 6),
+            ("ifsc", 10), ("branch", 5), ("savings", 6), ("current account", 8),
+            ("opening balance", 8), ("closing balance", 8), ("neft", 6), ("upi", 6),
         ],
         "patterns": [
-            (r'IFSC\s*[:\-]?\s*[A-Z]{4}0\w{6}', 9),  # IFSC code
+            (r'\bIFSC\s*[:\-]?\s*[A-Z]{4}0\w{6}\b', 12),  # IFSC code
         ],
     },
     "certificate": {
@@ -83,7 +104,7 @@ class DocumentClassifier:
     """Automatically classifies document type from OCR-extracted text."""
     
     def __init__(self):
-        logger.info("DocumentClassifier initialized")
+        logger.info("DocumentClassifier initialized with Indian Document support")
     
     def classify(self, text: str, text_blocks: List[Dict] = None) -> Dict:
         """Classify a document based on its text content.
@@ -140,7 +161,7 @@ class DocumentClassifier:
         # Confidence: based on score magnitude and margin over second-best
         second_score = ranked[1][1] if len(ranked) > 1 else 0
         margin = (best_score - second_score) / max(best_score, 1)
-        confidence = min(0.95, max(0.3, 0.5 + margin * 0.3 + min(best_score, 30) / 60))
+        confidence = min(0.98, max(0.3, 0.6 + margin * 0.3 + min(best_score, 40) / 80))
         
         logger.info(f"Document classified as '{best_type}' (confidence={confidence:.2f}, score={best_score})")
         
@@ -149,5 +170,5 @@ class DocumentClassifier:
             "confidence": round(confidence, 3),
             "all_scores": normalized,
             "matched_keywords": {k: v for k, v in match_details.items() if v},
-            "detail": f"Classified as '{best_type}' based on {len(match_details.get(best_type, []))} keyword matches.",
+            "detail": f"Classified as '{best_type}' based on {len(match_details.get(best_type, []))} indicators.",
         }
